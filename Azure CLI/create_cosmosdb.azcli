@@ -1,0 +1,32 @@
+# Execute in Bash shell
+
+SUBSCRIPTION="Azure subscription 1"
+RESOURCEGROUP="Playground"
+LOCATION="uksouth"
+
+COSMOS_ACCOUNT="cosmos-nosql-playground"
+DB_NAME="activity"
+CONTAINER_NAME="temp-test"
+PARTITION_KEY_PATH="//plaything_name"  # NB slash must be escaped as // for Bash otherwise it is interpreted as a local path!
+
+# database account
+az cosmosdb create \
+    --name $COSMOS_ACCOUNT \
+    --resource-group $RESOURCEGROUP \
+    --subscription "$SUBSCRIPTION" \
+    --enable-free-tier true \
+    --locations regionName=$LOCATION \
+    --default-consistency-level "Eventual"
+
+# database and container for playground
+az cosmosdb sql database create \
+    --account-name $COSMOS_ACCOUNT \
+    --resource-group $RESOURCEGROUP \
+    --name $DB_NAME
+az cosmosdb sql container create \
+    --account-name $COSMOS_ACCOUNT \
+    --resource-group $RESOURCEGROUP \
+    --database-name  $DB_NAME \
+    --name $CONTAINER_NAME \
+    --partition-key-path "$PARTITION_KEY_PATH" \
+    --throughput 400

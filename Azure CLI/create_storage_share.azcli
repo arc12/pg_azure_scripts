@@ -1,0 +1,21 @@
+# creates a "file share" suitable for mounting in a function app
+STORAGE_ACCOUNT="dlpgstorage"
+
+echo "Existing shares"
+az storage share list \
+    --account-name $STORAGE_ACCOUNT
+    # --account-key  # this isn't needed in practice for small-scale subscriptions
+
+az storage share create \
+    --name config \
+    --account-name $STORAGE_ACCOUNT \
+    --access-tier Hot  # I have a suspicion that Cool REALLY slowed things down
+                        # [--account-key]
+                        # [--account-name]
+                        # [--connection-string]
+                        # [--fail-on-exist]
+                        # [--file-endpoint]
+                        # [--metadata]
+                        # [--quota]
+                        # [--sas-token]
+                        # [--timeout]
