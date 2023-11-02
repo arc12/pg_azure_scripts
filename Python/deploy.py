@@ -18,7 +18,9 @@ auth = HTTPBasicAuth(deployment_user, environ["DLPGTEST1_DEPLOY_PWD"])  # except
 
 # check existing deployments and allow bail out
 resp = requests.get(deploy_url.replace("zipdeploy", "deployments"),  auth=auth)
-print(resp.status_code)
+if resp.status_code != 200:
+    print("FAILED to get list of existing deployments; HTTP status = ", resp.status_code)
+    exit()
 progress = json.loads(resp.text)
 proceed = True
 if len(progress) > 0:
@@ -28,16 +30,22 @@ if len(progress) > 0:
     
 if proceed:
     with open(zip_path, 'rb') as z:
+        print("Posting Zip")
         resp = requests.post(f"{deploy_url}?isAsync=true", files={"file": z}, auth=auth)
-        print(resp.status_code)
-        print(json.dumps(json.loads(resp.headers), indent=2))
+        print("HTTP response code:", resp.status_code)
+        if resp.status_code > 400:
+            exit()
+        print(json.dumps(dict(resp.headers), indent=2))
         poll_url = resp.headers.get("Location", None)
+        print("Log URL: ", resp.log_url)
 
     # poll progress
     complete = False
     while not complete:
         resp = requests.get(poll_url,  auth=auth)
-        progress = json.loads(resp.text)[0]
+        progress = json.loads(resp.text)
+        if isinstance(progress, list):
+            progress = progress[0]
         print(progress["status_text"])
         print(progress["message"])
         print(progress["progress"])
@@ -45,7 +53,8 @@ if proceed:
         print()
         complete = progress['complete']
         if not complete:
-            sleep(30)
+            print("sleeping 10s")
+            sleep(10)
 
     print("COMPLETED")
 else:
