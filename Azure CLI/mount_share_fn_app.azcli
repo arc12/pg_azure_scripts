@@ -2,7 +2,7 @@
 # mounts a file share (previously created storage account) for a function app to use (it must be linux-based)
 # REF: https://learn.microsoft.com/en-us/cli/azure/webapp/config/storage-account?view=azure-cli-latest
 
-WEB_APP_NAME="dlpg-test1"  # fn app name
+WEB_APP_NAME="dlpg-demo"  # fn app name
 RESOURCEGROUP="Playground"
 
 echo "pre-existing mounts"

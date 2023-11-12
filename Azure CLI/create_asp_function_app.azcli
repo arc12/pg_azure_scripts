@@ -1,0 +1,31 @@
+# Execute in Bash shell
+
+# This creates a function app linked to a service plan.
+# NOTE that only 1 free (F1) service plan is permitted per subscription.
+
+# Function app and storage account names must be unique.
+
+# Variable block
+let "randomIdentifier=$RANDOM*$RANDOM"
+location="uksouth"
+resourceGroup="Playground"
+storage="dlpgdemo1app"  # lower case and numbers only
+appServicePlan="dlpg-demo-asp"
+functionApp="dlpg-demo1"
+skuStorage="Standard_LRS"
+skuPlan="F1" #  WONT WORK !!!!!!!!!!!!!!! cannot create function apps in free and shared plans. Basic dedicated is the lowest spec.
+functionsVersion="4"
+runtime="python"
+runtimeVersion="3.11"
+
+# Create an Azure storage account in the resource group.
+echo "Creating $storage"
+az storage account create --name $storage --location "$location" --resource-group $resourceGroup --sku $skuStorage
+
+# Create an App Service plan
+echo "Creating $appServicePlan"
+az functionapp plan create --name $appServicePlan --resource-group $resourceGroup --location "$location" --sku $skuPlan --is-linux true
+
+# Create a Function App
+echo "Creating $functionApp"
+az functionapp create --name $functionApp --storage-account $storage --plan $appServicePlan --resource-group $resourceGroup --functions-version $functionsVersion --runtime $runtime --runtime-version $runtimeVersion
