@@ -1,4 +1,5 @@
 # copy the specified plaything files into DEPLOY and zip
+# also runs through the various README.md files and compiles more user-friendly output. This requires pypandoc (read coc about pandoc dependency at https://pypi.org/project/pypandoc/)
 
 deploy_playthings = [  # folder names (these contain the plaything repo files).
     "attribute-issues-pt",  # the first one MUST contain an up-to-date pg_shared and suitable hosts.json
@@ -17,8 +18,46 @@ first_only_files = ["host.json"]  # copy only from 1st listed plaything (files w
 from os import chdir, walk, path, rmdir, listdir, remove, mkdir
 from shutil import copyfile
 from zipfile import ZipFile, ZIP_DEFLATED
+import markdown
+import fitz  # this is pymupdf !
+from datetime import datetime as dt
 
 chdir(base_path)
+
+# make documentation, first cleaning old
+out_file = "Playground Documentation.html"
+try:
+    remove(out_file)
+except:
+    pass
+md_files = [path.join(deploy_playthings[0], "pg_shared", "Plaything Configuration.md")] \
+    + [path.join(ptp, "README.md") for ptp in deploy_playthings]
+md_str = ""
+for mdf in md_files:
+    with open(mdf, 'r') as md:
+        md_str += "\n".join(md.readlines())
+    md_str += "\n\n----\n"
+timestamp = dt.now().isoformat(timespec="minutes")
+md_str += f"_Generated from markdown source: {timestamp}_"
+html = markdown.markdown(md_str)
+with open(out_file, 'w', encoding="utf-8") as f:
+    f.write(html)
+print(f"Created: {out_file}")
+# convert to PDF. This DOES NOT do nice page breaks!
+out_file = out_file.replace(".html", ".pdf")
+mediabox = fitz.paper_rect("a4")
+mediabox_loc = mediabox + (36, 36, -36, -36)  # leave borders of 0.5 inches
+css = "body {font-family: sans-serif;}"
+story = fitz.Story(html=html, user_css=css)
+writer = fitz.DocumentWriter(out_file)  # create the writer
+more = 1  # will indicate end of input once it is set to 0
+while more:  # loop outputting the story
+    device = writer.begin_page(mediabox)  # make new page
+    more, _ = story.place(mediabox_loc)  # layout into allowed rectangle
+    story.draw(device)  # write on page
+    writer.end_page()  # finish page
+writer.close()  # close output file
+print(f"Created: {out_file}")
 
 # clean DEPLOY
 def deep_del(start_dir):
