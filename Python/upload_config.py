@@ -10,6 +10,7 @@ share_name = "config"
 # can find token in portal or by "az storage account keys list -g Playground -n dlpgstorage". Store in env var DLPGSTORAGE_KEY
 
 local_path = "../Config"
+ignore_items = ".git"
 
 from os import listdir, path, environ
 
@@ -19,7 +20,7 @@ sc = ShareClient(account_url, share_name=share_name, credential=environ["DLPGSTO
 def process_level(rel_dir = ""):
     full_dir = path.join(local_path, rel_dir)
     remote_dirs = [az["name"] for az in sc.list_directories_and_files(rel_dir) if az["is_directory"]]
-    for item in listdir(full_dir):
+    for item in [i for i in listdir(full_dir) if i not in ignore_items]:
         item_path = path.join(full_dir, item)
         az_path = rel_dir.replace("\\", "/")   
         az_path += ("/" if len(az_path) > 0 else "") + item
