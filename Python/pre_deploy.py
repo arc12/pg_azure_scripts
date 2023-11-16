@@ -8,6 +8,9 @@ deploy_playthings = [  # folder names (these contain the plaything repo files).
     "word-generator-pt"
 ]
 
+# whether to deploy any *Timer folders, which should contain timerTrigger functions to make periodic calls to the Flask "ping" route to keep the app loaded (no cold starts)
+deploy_timers = True
+
 # path to folder containing the playthings, which will also be used to create DEPLOY folder
 base_path = ".."
 
@@ -25,6 +28,7 @@ from datetime import datetime as dt
 chdir(base_path)
 
 # make documentation, first cleaning old
+print("Making merged documentation from markdown:")
 out_file = "Playground Documentation.html"
 try:
     remove(out_file)
@@ -58,6 +62,7 @@ while more:  # loop outputting the story
     writer.end_page()  # finish page
 writer.close()  # close output file
 print(f"Created: {out_file}")
+print()
 
 # clean DEPLOY
 def deep_del(start_dir):
@@ -72,8 +77,8 @@ def deep_del(start_dir):
 deep_del("DEPLOY")
 mkdir("DEPLOY")
 
+print("Copying files to DEPLOY and zip file:")
 requirements_entries = set()
-
 with ZipFile("DEPLOY.zip", 'w', compression=ZIP_DEFLATED) as z:
     for pt in deploy_playthings:
         # read and accumulate requirements
@@ -86,6 +91,10 @@ with ZipFile("DEPLOY.zip", 'w', compression=ZIP_DEFLATED) as z:
         # make dirs and copy files. This will throw an exception if any dir already exists, which should only happen if a developer fails to follow dir name conventions
         for root, dirs, files in walk(pt):
             print(root)
+            # check for and omit *Timer, if so configured
+            if not deploy_timers:
+                skip_dirs += [d for d in dirs if d.endswith("Timer")]
+            # make-dir, copy file, or skip...
             dirs[:] = [d for d in dirs if d not in skip_dirs]  # this in an in-place modification of dirs, which is rquired to prune what is used in the next iteration of walk
             for dn in dirs:
                 mkdir(path.join(root, dn).replace(pt, "DEPLOY"))
