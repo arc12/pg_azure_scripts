@@ -2,7 +2,10 @@
 # also runs through the various README.md files and compiles more user-friendly output. This requires pypandoc (read coc about pandoc dependency at https://pypi.org/project/pypandoc/)
 
 deploy_playthings = [  # folder names (these contain the plaything repo files).
-    "attribute-issues-pt",  # the first one MUST contain an up-to-date pg_shared and suitable hosts.json
+    # the first one MUST contain an up-to-date pg_shared and suitable hosts.json
+    "predict-interpret-pt",
+    "pra-pt",
+    "attribute-issues-pt",
     "hello-world-pt",
     "simpsons-pt",
     "word-generator-pt"
